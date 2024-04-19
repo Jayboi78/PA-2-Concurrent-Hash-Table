@@ -1,8 +1,7 @@
-# Compiler
-CC = gcc
-
-# Compiler flags
-CFLAGS = -Wall -Wextra -pthread
+# Variables
+CC = gcc  # Compiler to use
+CFLAGS = -Wall -Wextra -O2 -pthread  # Compilation flags (adjust as necessary)
+LDFLAGS = -pthread  # Linker flags for thread support
 
 # Source files
 SRCS = chash.c hashdb.c rwlocks.c
@@ -10,20 +9,23 @@ SRCS = chash.c hashdb.c rwlocks.c
 # Object files
 OBJS = $(SRCS:.c=.o)
 
-# Executable name
+# Header files
+HDRS = hashdb.h rwlocks.h common.h common_threads.h
+
+# Output executable
 TARGET = chash
 
-# Default rule
+# Default target
 all: $(TARGET)
 
 # Compile source files into object files
-%.o: %.c
-    $(CC) $(CFLAGS) -c $< -o $@
+%.o: %.c $(HDRS)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# Link object files into executable
+# Link object files to create the executable
 $(TARGET): $(OBJS)
-    $(CC) $(CFLAGS) $(OBJS) -o $@
+	$(CC) $(OBJS) -o $(TARGET) $(LDFLAGS)
 
-# Clean rule
+# Clean target to remove compiled files
 clean:
-    rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(TARGET)

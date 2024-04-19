@@ -1,26 +1,21 @@
-#ifndef RWLOCKS_H
-#define RWLOCKS_H
+#ifndef RWLOCKS_H_
+#define RWLOCKS_H_
 
 #include <semaphore.h>
-#include  <stdlib.h>
-#include <pthread.h>
-#include <unistd.h>
 
-#include "common.h"
-#include "common_threads.h"
-
-typedef struct {
+typedef struct _rwlock_t {
     int readers;
     int acquired;
     int released;
-    sem_t lock;
     sem_t writelock;
+    sem_t lock;
 } rwlock_t;
 
+// Function prototypes
 void rwlock_init(rwlock_t *lock);
 void rwlock_acquire_readlock(rwlock_t *lock);
 void rwlock_release_readlock(rwlock_t *lock);
 void rwlock_acquire_writelock(rwlock_t *lock);
 void rwlock_release_writelock(rwlock_t *lock);
 
-#endif /* RWLOCKS_H */
+#endif
