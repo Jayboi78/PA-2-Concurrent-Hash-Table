@@ -3,14 +3,14 @@ CC = gcc  # Compiler to use
 CFLAGS = -Wall -Wextra -O2 -pthread  # Compilation flags (adjust as necessary)
 LDFLAGS = -pthread  # Linker flags for thread support
 
+# Header files
+HDRS = hashdb.h rwlocks.h common.h common_threads.h
+
 # Source files
 SRCS = chash.c hashdb.c rwlocks.c
 
 # Object files
 OBJS = $(SRCS:.c=.o)
-
-# Header files
-HDRS = hashdb.h rwlocks.h common.h common_threads.h
 
 # Output executable
 TARGET = chash

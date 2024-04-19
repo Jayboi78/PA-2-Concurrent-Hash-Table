@@ -9,8 +9,8 @@
 
 void rwlock_init(rwlock_t *lock) {
     lock->readers = 0;
-    lock->acquired = 0;
-    lock->released = 0;
+    lock->acquired = 2;
+    lock->released = 2;
     Sem_init(&lock->lock, 1); 
     Sem_init(&lock->writelock, 1); 
 }
