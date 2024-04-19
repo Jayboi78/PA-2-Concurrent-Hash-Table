@@ -3,8 +3,10 @@
 #include <string.h>
 #include <pthread.h>
 #include "hashdb.h" 
+#include "rwlocks.h"
 
 #define MAX_LINE_LENGTH 100
+#define OUTPUT_FILE "output.txt"
 
 typedef struct {
     char operation[10];
@@ -12,22 +14,43 @@ typedef struct {
     int salary;
 } Record;
 
+rwlock_t rwlock;
+
 void *performOperation(void *arg) {
     Record *record = (Record *)arg;
 
+    rwlock_rdlock(&rwlock); // Acquire reader lock
+
     if (strcmp(record->operation, "print") == 0) {
-        print_hash_table();
+        print_table();
     } else {
+        rwlock_wrlock(&rwlock); // Acquire writer lock
+
         if (strcmp(record->operation, "insert") == 0) {
-            insert(record->name, record->salary);
+            insert_record(record->name, record->salary);
         } else if (strcmp(record->operation, "search") == 0) {
-            search(record->name);
+            uint32_t salary = search_record(record->name);
+            FILE *output_file = fopen(OUTPUT_FILE, "a");
+            if (output_file == NULL) {
+                fprintf(stderr, "Error: Could not open file %s\n", OUTPUT_FILE);
+                exit(EXIT_FAILURE);
+            }
+            if (salary != 0) {
+                fprintf(output_file, "SEARCH,%s,%u\n", record->name, salary);
+            } else {
+                fprintf(output_file, "SEARCH,%s,No Record Found\n", record->name);
+            }
+            fclose(output_file);
         } else if (strcmp(record->operation, "delete") == 0) {
-            delete(record->name);
+            delete_record(record->name);
         } else {
             printf("Invalid operation: %s\n", record->operation);
         }
+
+        rwlock_unlock(&rwlock); // Release writer lock
     }
+
+    rwlock_unlock(&rwlock); // Release reader lock
 
     pthread_exit(NULL);
 }
@@ -46,6 +69,10 @@ void readFromFile(const char *filename) {
     while (fgets(line, sizeof(line), file)) {
         char *token = strtok(line, ",");
         Record *record = (Record *)malloc(sizeof(Record));
+        if (record == NULL) {
+            fprintf(stderr, "Error: Memory allocation failed.\n");
+            exit(EXIT_FAILURE);
+        }
 
         strcpy(record->operation, token);
 
@@ -71,6 +98,10 @@ void readFromFile(const char *filename) {
 }
 
 int main() {
-    readFromFile("data.txt");
+    rwlock_init(&rwlock); // Initialize reader-writer lock
+    init_hash_table(); // Initialize the hash table
+
+    readFromFile("commands.txt");
+
     return 0;
 }
